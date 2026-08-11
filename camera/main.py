@@ -1,4 +1,4 @@
-import picamera2
+# import picamera2
 import adafruit_st7789
 import board
 import digitalio
