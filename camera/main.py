@@ -1,3 +1,5 @@
+Python
+
 import st7789
 from PIL import Image, ImageDraw, ImageFont
 
