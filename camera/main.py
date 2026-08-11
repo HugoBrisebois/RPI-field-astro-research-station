@@ -1,8 +1,8 @@
-import ST7789
+import st7789
 from PIL import Image, ImageDraw
 
 # 1. Initialize display (auto-configures standard Pi SPI pins: CE0, GPIO 25 DC, GPIO 27 Reset)
-disp = ST7789.ST7789(width=240, height=240, rotation=90)
+disp = st7789.ST7789(width=240, height=240, rotation=90)
 disp.begin()
 
 # 2. Create canvas
