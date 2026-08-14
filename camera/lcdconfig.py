@@ -1,81 +1,152 @@
-import os
-import sys 
 import time
-import logging
-import spidev as SPI
-sys.path.append("..")
-from lib import LCD_2inch
-from PIL import Image,ImageDraw,ImageFont
+import RPi.GPIO as GPIO
+import spidev
+from PIL import Image, ImageDraw, ImageFont
 
-# Raspberry Pi pin configuration:
-RST = 27
-DC = 25
-BL = 18
-bus = 0 
-device = 0 
-logging.basicConfig(level=logging.DEBUG)
+# --- Pin Definitions (Physical Header Pins to GPIO) ---
+RST_PIN = 27  # Physical Pin 13
+DC_PIN  = 25  # Physical Pin 22
+BL_PIN  = 18  # Physical Pin 12
+CS_BUS  = 0
+CS_DEV  = 0   # GPIO 8 (CE0 / Physical Pin 24)
+
+# --- Initialize GPIO ---
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(RST_PIN, GPIO.OUT)
+GPIO.setup(DC_PIN, GPIO.OUT)
+GPIO.setup(BL_PIN, GPIO.OUT)
+
+# Turn on Backlight
+GPIO.output(BL_PIN, GPIO.HIGH)
+
+# --- Initialize SPI ---
+spi = spidev.SpiDev()
+spi.open(CS_BUS, CS_DEV)
+spi.max_speed_hz = 40000000  # 40 MHz
+spi.mode = 0b00             # Mode 0 (CPOL=0, CPHA=0)
+
+def send_command(cmd):
+    GPIO.output(DC_PIN, GPIO.LOW)  # LOW = Command
+    spi.writebytes([cmd])
+
+def send_data(data):
+    GPIO.output(DC_PIN, GPIO.HIGH) # HIGH = Data
+    if isinstance(data, int):
+        spi.writebytes([data])
+    else:
+        spi.writebytes(data)
+
+def reset_display():
+    GPIO.output(RST_PIN, GPIO.HIGH)
+    time.sleep(0.01)
+    GPIO.output(RST_PIN, GPIO.LOW)
+    time.sleep(0.1)
+    GPIO.output(RST_PIN, GPIO.HIGH)
+    time.sleep(0.1)
+
+def init_st7789():
+    """Initializes ST7789 display registers for 240x320 resolution."""
+    reset_display()
+
+    send_command(0x11)  # Sleep Out
+    time.sleep(0.12)
+
+    send_command(0x36)  # MADCTL (Memory Data Access Control)
+    send_data(0x00)     # Portrait mode RGB order
+
+    send_command(0x3A)  # COLMOD (Interface Pixel Format)
+    send_data(0x05)     # 16-bit/pixel (RGB565)
+
+    send_command(0xB2)  # PORCTRL (Porch Setting)
+    send_data([0x0C, 0x0C, 0x00, 0x33, 0x33])
+
+    send_command(0xB7)  # GCTRL (Gate Control)
+    send_data(0x35)
+
+    send_command(0xBB)  # VCOMS (VCOM Setting)
+    send_data(0x19)
+
+    send_command(0xC0)  # LCMCTRL
+    send_data(0x2C)
+
+    send_command(0xC2)  # VDVVRHEN
+    send_data(0x01)
+
+    send_command(0xC3)  # VRHS
+    send_data(0x12)
+
+    send_command(0xC4)  # VDVS
+    send_data(0x20)
+
+    send_command(0xC6)  # FRCTRL2 (Frame Rate Control)
+    send_data(0x0F)
+
+    send_command(0xD0)  # PWCTRL1 (Power Control 1)
+    send_data([0xA4, 0xA1])
+
+    send_command(0x21)  # Display Inversion ON (Needed for proper colors on Waveshare)
+
+    send_command(0x29)  # Display ON
+    time.sleep(0.05)
+
+def display_image(img):
+    """Converts a PIL RGB Image into RGB565 bytes and writes to display."""
+    # ST7789 expects 240x320 resolution
+    img = img.resize((240, 320))
+    
+    # Set Address Window to Full Screen
+    send_command(0x2A)  # Column Address Set
+    send_data([0x00, 0x00, 0x00, 239])
+
+    send_command(0x2B)  # Row Address Set
+    send_data([0x00, 0x00, 0x01, 0x3F]) # 319 = 0x013F
+
+    send_command(0x2C)  # Memory Write
+
+    # Convert PIL Image to RGB565 Byte Array
+    pixels = img.getdata()
+    buf = bytearray(240 * 320 * 2)
+    idx = 0
+    for r, g, b in pixels:
+        # Convert RGB888 to RGB565
+        rgb565 = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
+        buf[idx] = (rgb565 >> 8) & 0xFF
+        buf[idx + 1] = rgb565 & 0xFF
+        idx += 2
+
+    # Send pixel buffer over SPI in chunks
+    GPIO.output(DC_PIN, GPIO.HIGH)
+    chunk_size = 4096
+    for i in range(0, len(buf), chunk_size):
+        spi.writebytes(list(buf[i:i + chunk_size]))
+
 try:
-    # display with hardware SPI:
-    ''' Warning!!!Don't  creation of multiple displayer objects!!! '''
-    #disp = LCD_2inch.LCD_2inch(spi=SPI.SpiDev(bus, device),spi_freq=10000000,rst=RST,dc=DC,bl=BL)
-    disp = LCD_2inch.LCD_2inch()
-    # Initialize library.
-    disp.Init()
-    # Clear display.
-    disp.clear()
-    #Set the backlight to 100
-    disp.bl_DutyCycle(50)
+    print("Initializing ST7789 Display...")
+    init_st7789()
 
-    # Create blank image for drawing.
-    image1 = Image.new("RGB", (disp.height, disp.width ), "WHITE")
-    draw = ImageDraw.Draw(image1)
+    # Create test image with PIL
+    print("Drawing test screen...")
+    image = Image.new("RGB", (240, 320), color=(15, 15, 30)) # Dark blue background
+    draw = ImageDraw.Draw(image)
 
-    logging.info("draw point")
+    # Draw a colored border
+    draw.rectangle([(5, 5), (234, 314)], outline=(0, 255, 0), width=4) # Green border
+    draw.rectangle([(20, 20), (220, 100)], fill=(255, 0, 0))            # Red Box
 
-    draw.rectangle((5,10,6,11), fill = "BLACK")
-    draw.rectangle((5,25,7,27), fill = "BLACK")
-    draw.rectangle((5,40,8,43), fill = "BLACK")
-    draw.rectangle((5,55,9,59), fill = "BLACK")
+    # Draw text
+    draw.text((30, 40), "IT WORKS!", fill=(255, 255, 255))
+    draw.text((30, 150), "Raspberry Pi Zero 2W", fill=(255, 255, 0))
+    draw.text((30, 180), "Waveshare 2.0 LCD", fill=(0, 255, 255))
 
-    logging.info("draw line")
-    draw.line([(20, 10),(70, 60)], fill = "RED",width = 1)
-    draw.line([(70, 10),(20, 60)], fill = "RED",width = 1)
-    draw.line([(170,15),(170,55)], fill = "RED",width = 1)
-    draw.line([(150,35),(190,35)], fill = "RED",width = 1)
+    display_image(image)
+    print("Success! Screen should now display a test pattern.")
 
-    logging.info("draw rectangle")
-    draw.rectangle([(20,10),(70,60)],fill = "WHITE",outline="BLUE")
-    draw.rectangle([(85,10),(130,60)],fill = "BLUE")
+    # Keep script alive so display stays on
+    while True:
+        time.sleep(1)
 
-    logging.info("draw circle")
-    draw.arc((150,15,190,55),0, 360, fill =(0,255,0))
-    draw.ellipse((150,65,190,105), fill = (0,255,0))
-
-    logging.info("draw text")
-    Font1 = ImageFont.truetype("../Font/Font01.ttf",25)
-    Font2 = ImageFont.truetype("../Font/Font01.ttf",35)
-    Font3 = ImageFont.truetype("../Font/Font02.ttf",32)
-
-    draw.rectangle([(0,65),(140,100)],fill = "WHITE")
-    draw.text((5, 68), 'Hello world', fill = "BLACK",font=Font1)
-    draw.rectangle([(0,115),(190,160)],fill = "RED")
-    draw.text((5, 118), 'WaveShare', fill = "WHITE",font=Font2)
-    draw.text((5, 160), '1234567890', fill = "GREEN",font=Font3)
-    text= u"微雪电子"
-    draw.text((5, 200),text, fill = "BLUE",font=Font3)
-    image1=image1.rotate(180)
-    disp.ShowImage(image1)
-    time.sleep(3)
-    logging.info("show image")
-    image = Image.open('../pic/LCD_2inch4_1.jpg')	
-    image = image.rotate(180)
-    disp.ShowImage(image)
-    time.sleep(3)
-    disp.module_exit()
-    logging.info("quit:")
-except IOError as e:
-    logging.info(e)    
 except KeyboardInterrupt:
-    disp.module_exit()
-    logging.info("quit:")
-    exit()
+    print("\nExiting and cleaning up GPIO...")
+    spi.close()
+    GPIO.cleanup()
