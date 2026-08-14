@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import sys
 import time
 import st7789
@@ -89,5 +88,3 @@ try:
 
 except Exception as e:
     print(f"\n[ERROR] Exception occurred during image rendering/display: {e}")
-=======
->>>>>>> Stashed changes
