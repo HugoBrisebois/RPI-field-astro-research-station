@@ -7,6 +7,7 @@ sys.path.append("..")
 from lib import LCD_2inch
 from PIL import Image,ImageDraw,ImageFont
 
+<<<<<<< HEAD
 # Raspberry Pi pin configuration:
 RST = 27
 DC = 25
@@ -79,3 +80,6 @@ except KeyboardInterrupt:
     disp.module_exit()
     logging.info("quit:")
     exit()
+=======
+#
+>>>>>>> 75fe0627818d5a32d6cb61a481990a3bf79c9e42
