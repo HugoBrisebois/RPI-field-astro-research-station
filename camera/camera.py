@@ -1,5 +1,5 @@
 from picamera2 import Picamera2
-
+import time
 # configuring the rpi camera module 3
 # to be able to capture and display the various images 
 # captured by the camera
@@ -11,7 +11,7 @@ picam.configure(config)
 exposure = 2.0   # 2 second frameing preview
 gain = 8.0       # amplify the sensor signal
 
-pciam.set_controls({
+picam.set_controls({
     "AfMode": controls.AfModeEum.Manual,
     "LensPosition": 0.0,      # Set Focus to infinity
     "AeEnable": False,        # Enable manual shutter mode so that the camera doesn't auto adjust brightness
@@ -19,3 +19,10 @@ pciam.set_controls({
     "AnalogueGain": gain
 })
 
+picam.start()
+
+
+# capturing an image
+
+time.sleep(1)
+image = picam.capture_image("main")
