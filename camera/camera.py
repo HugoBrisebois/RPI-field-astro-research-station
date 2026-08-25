@@ -25,4 +25,4 @@ picam.start()
 # capturing an image
 
 time.sleep(1)
-image = picam.capture_image("main")
+image = picam.capture_image("main.jpg")
