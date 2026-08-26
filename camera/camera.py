@@ -28,7 +28,7 @@ picam.start()
 # capturing an image
 
 time.sleep(1)
-image = picam.capture_file(capture_config, "test.jpeg", format='jpeg')
+image = picam.capture_file("test.jpeg", format='jpeg')
 
 
 # stop the camera
