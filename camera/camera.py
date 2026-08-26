@@ -16,7 +16,7 @@ exposure = 2.0   # 2 second frameing preview
 gain = 8.0       # amplify the sensor signal
 
 picam.set_controls({
-    "AfMode": controls.AfModeEum.Manual,
+    "AfMode": controls.AfModeEnum.Manual,
     "LensPosition": 0.0,      # Set Focus to infinity
     "AeEnable": False,        # Enable manual shutter mode so that the camera doesn't auto adjust brightness
     "ExposureTime": exposure,
