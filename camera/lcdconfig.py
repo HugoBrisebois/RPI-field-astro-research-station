@@ -93,7 +93,7 @@ def init_st7789():
 def display_image(img):
     """Converts a PIL RGB Image into RGB565 bytes and writes to display."""
     # ST7789 expects 240x320 resolution
-    img = img.resize((240, 320))
+    img = img.resize((320, 240))
     
     # Set Address Window to Full Screen
     send_command(0x2A)  # Column Address Set
@@ -106,7 +106,7 @@ def display_image(img):
 
     # Convert PIL Image to RGB565 Byte Array
     pixels = img.getdata()
-    buf = bytearray(240 * 320 * 2)
+    buf = bytearray(320 * 240 * 2)
     idx = 0
     for r, g, b in pixels:
         # Convert RGB888 to RGB565
