@@ -46,14 +46,17 @@ def reset_display():
     time.sleep(0.1)
 
 def init_st7789():
-    """Initializes ST7789 display registers for 240x320 resolution."""
+    """Initializes ST7789 display registers for 320x240 landscape resolution."""
     reset_display()
 
     send_command(0x11)  # Sleep Out
     time.sleep(0.12)
 
+    # --- LANDSCAPE MODE CONFIGURATION ---
+    # 0x70 = MV (Row/Col Exchange) + MX (Column Address Order) + MY (Row Address Order)
+    # If the image appears upside down, use 0x60 instead of 0x70.
     send_command(0x36)  # MADCTL (Memory Data Access Control)
-    send_data(0x00)     # Portrait mode RGB order
+    send_data(0x70)     
 
     send_command(0x3A)  # COLMOD (Interface Pixel Format)
     send_data(0x05)     # 16-bit/pixel (RGB565)
@@ -92,15 +95,16 @@ def init_st7789():
 
 def display_image(img):
     """Converts a PIL RGB Image into RGB565 bytes and writes to display."""
-    # ST7789 expects 240x320 resolution
+    # Resize image to landscape resolution (320x240)
     img = img.resize((320, 240))
     
-    # Set Address Window to Full Screen
-    send_command(0x2A)  # Column Address Set
-    send_data([0x00, 0x00, 0x00, 239])
+    # Column Address Set: 0 to 319 (0x013F)
+    send_command(0x2A)
+    send_data([0x00, 0x00, 0x01, 0x3F])
 
-    send_command(0x2B)  # Row Address Set
-    send_data([0x00, 0x00, 0x01, 0x3F]) # 319 = 0x013F
+    # Row Address Set: 0 to 239 (0x00EF)
+    send_command(0x2B)
+    send_data([0x00, 0x00, 0x00, 0xEF])
 
     send_command(0x2C)  # Memory Write
 
@@ -122,15 +126,15 @@ def display_image(img):
         spi.writebytes(list(buf[i:i + chunk_size]))
 
 try:
-    print("Initializing ST7789 Display...")
+    print("Initializing ST7789 Display (Landscape Mode)...")
     init_st7789()
 
-    # display an image to the display taken by the camera
+    # Display an image to the display
     image_path = "test.jpeg"
     image = Image.open(image_path).convert("RGB")
 
     # Debug
-    print(f"displaying {image_path}")
+    print(f"Displaying {image_path}")
     display_image(image)
     print("Success")
 
