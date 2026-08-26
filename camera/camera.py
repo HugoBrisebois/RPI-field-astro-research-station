@@ -8,19 +8,18 @@ import time
 # captured by the camera
 picam = Picamera2()
 capture_config = picam.create_still_configuration(main={"size": (1280, 960)})
-picam.configure(capture_config, "test.jpg")
 
 
 # set global variables for the camera settings
 exposure = 2000000   # 2 second frameing preview
 gain = 8.0       # amplify the sensor signal
 
-#picam.set_controls({
-#    "AfMode": controls.AfModeEnum.Manual,   "LensPosition": 0.0,      # Set Focus to infinity
-#    "AeEnable": False,        # Enable manual shutter mode so that the camera doesn't auto adjust brightness
-#    "ExposureTime": exposure,
-#    "AnalogueGain": gain
-#})
+picam.set_controls({
+    "AfMode": controls.AfModeEnum.Manual,   "LensPosition": 0.0,      # Set Focus to infinity
+    "AeEnable": False,        # Enable manual shutter mode so that the camera doesn't auto adjust brightness
+    "ExposureTime": exposure,
+    "AnalogueGain": gain
+})
 
 picam.start()
 
@@ -28,7 +27,7 @@ picam.start()
 # capturing an image
 
 time.sleep(1)
-image = picam.capture_file("main")
+image = picam.capture_file(capture_config, "test.jpeg")
 
 
 # stop the camera
