@@ -8,11 +8,11 @@ import time
 # captured by the camera
 picam = Picamera2()
 config = picam.create_preview_configuration(main={"size": (1280, 960)})
-picture = picam.create_still_configuration(main={"size": (4608, 2592)})
 picam.configure(config)
-picam.configure(picture)
+
+
 # set global variables for the camera settings
-exposure = 2.0   # 2 second frameing preview
+exposure = 2000000   # 2 second frameing preview
 gain = 8.0       # amplify the sensor signal
 
 picam.set_controls({
@@ -30,3 +30,7 @@ picam.start()
 
 time.sleep(1)
 image = picam.capture_image("main.jpg")
+
+
+# stop the camera
+picam.stop()
