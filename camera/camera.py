@@ -1,5 +1,8 @@
 from picamera2 import Picamera2
+from libcamera import controls
 import time
+
+
 # configuring the rpi camera module 3
 # to be able to capture and display the various images 
 # captured by the camera
