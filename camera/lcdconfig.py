@@ -125,22 +125,14 @@ try:
     print("Initializing ST7789 Display...")
     init_st7789()
 
-    # Create test image with PIL
-    print("Drawing test screen...")
-    image = Image.new("RGB", (240, 320), color=(15, 15, 30)) # Dark blue background
-    draw = ImageDraw.Draw(image)
+    # display an image to the display taken by the camera
+    image_path = "test.jpeg"
+    image = Image.open(image_path).convert("RGB")
 
-    # Draw a colored border
-    draw.rectangle([(5, 5), (234, 314)], outline=(0, 255, 0), width=4) # Green border
-    draw.rectangle([(20, 20), (220, 100)], fill=(255, 0, 0))            # Red Box
-
-    # Draw text
-    draw.text((30, 40), "IT WORKS!", fill=(255, 255, 255))
-    draw.text((30, 150), "Raspberry Pi Zero 2W", fill=(255, 255, 0))
-    draw.text((30, 180), "Waveshare 2.0 LCD", fill=(0, 255, 255))
-
+    # Debug
+    print(f"displaying {image_path}")
     display_image(image)
-    print("Success! Screen should now display a test pattern.")
+    print("Success")
 
     # Keep script alive so display stays on
     while True:
