@@ -29,7 +29,7 @@ picam.start()
 # capturing an image
 
 time.sleep(1)
-image = picam.capture_image("main.jpg")
+image = picam.capture_image("main")
 
 
 # stop the camera
