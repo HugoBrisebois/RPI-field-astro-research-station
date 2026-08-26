@@ -15,13 +15,12 @@ picam.configure(capture_config, "test.jpg")
 exposure = 2000000   # 2 second frameing preview
 gain = 8.0       # amplify the sensor signal
 
-picam.set_controls({
-    "AfMode": controls.AfModeEnum.Manual,
-    "LensPosition": 0.0,      # Set Focus to infinity
-    "AeEnable": False,        # Enable manual shutter mode so that the camera doesn't auto adjust brightness
-    "ExposureTime": exposure,
-    "AnalogueGain": gain
-})
+#picam.set_controls({
+#    "AfMode": controls.AfModeEnum.Manual,   "LensPosition": 0.0,      # Set Focus to infinity
+#    "AeEnable": False,        # Enable manual shutter mode so that the camera doesn't auto adjust brightness
+#    "ExposureTime": exposure,
+#    "AnalogueGain": gain
+#})
 
 picam.start()
 
