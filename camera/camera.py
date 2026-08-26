@@ -7,8 +7,8 @@ import time
 # to be able to capture and display the various images 
 # captured by the camera
 picam = Picamera2()
-config = picam.create_preview_configuration(main={"size": (1280, 960)})
-picam.configure(config)
+capture_config = picam.create_still_configuration(main={"size": (1280, 960)})
+picam.configure(capture_config, "test.jpg")
 
 
 # set global variables for the camera settings
@@ -29,7 +29,7 @@ picam.start()
 # capturing an image
 
 time.sleep(1)
-image = picam.capture_image("main")
+image = picam.capture_file("main")
 
 
 # stop the camera
