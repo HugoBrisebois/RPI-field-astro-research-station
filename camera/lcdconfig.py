@@ -125,8 +125,11 @@ def display_image(img):
     for i in range(0, len(buf), chunk_size):
         spi.writebytes(list(buf[i:i + chunk_size]))
 
+def get_images():
+    pass
+
 try:
-    print("Initializing ST7789 Display (Landscape Mode)...")
+    print("Initializing ST7789 Display")
     init_st7789()
 
     # Display an image to the display
